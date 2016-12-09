@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Own Page</title>
+	<style type="text/css">
+		body{ font: 70.5% "Trebuchet MS", sans-serif; margin: 5px;}
+		body{ background-color:lightblue;}
+	</style>
+  </head>
+  <body>
+	<!-- Tabs -->
+		<div id="tabs">
+			<ul>
+				<li><a href="#tabs-1">Configure for Android</a></li>
+				<li><a href="#tabs-2">Builds</a></li>
+			</ul>
+			<div id="tabs-1">
+			Download the lastest x264:<br>
+			<textarea name="x264" id="x264" style="width:315px;height:40px;background-color:#D0F18F;">ftp://ftp.videolan.org/pub/videolan/x264/snapshots/
+			</textarea>
+			<ol>
+			<li>Unzip it to a directory of your choice.</li>
+			<li>Go to that directory.</li>
+			<li>Build a script (build_x264.sh) with these options (do not forget to use sudo to execute the script):<br>
+				<textarea name="x264_configure" id="x264_configure" style="width:660px;height:300px;background-color:#D0F18F;text-align:left">
+				NDK= directory where you have NDK
+				PREBUILT=$NDK/toolchains/arm-linux-androideabi-4.4.3/prebuilt
+				PLATFORM=$NDK/platforms/android-8/arch-arm (or any other android platform you want)
+				PREFIX=/home/android-ffmpeg
+				
+				./configure --prefix=$PREFIX \
+				--enable-static \
+				--enable-pic \
+				--disable-asm \
+				--disable-cli \
+				--host=arm-linux \
+				--cross-prefix=$PREBUILT/linux-x86/bin/arm-linux-androideabi- \
+				--sysroot=$PLATFORM
+				
+				make
+				sudo make install
+				sudo ldconfig
+				</textarea>
+			</li>
+			</ol>
+			<br>
+			Download the lastest Ffmpeg:
+			<br>
+			<textarea name="download" id="download" style="width:310px;height:40px;background-color:#D0F18F;">http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2
+			</textarea>
+			<ol>
+				<li>Unzip it to a directory of your choice.</li>
+				<li>Go to that directory.</li>
+				<li>Build a script (build_ffmpeg.sh) with these options:(do not forget to use sudo to execute the script)
+				<br>
+					<textarea name="ffmpeg_config" id="ffmpeg_config" style="width:750px;height:600px;background-color:#D0F18F;">
+					#!/bin/bash
+
+					NDK= directory where you have NDK
+					PLATFORM=$NDK/platforms/android-8/arch-arm
+					PREBUILT=$NDK/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86
+					PREFIX=/home/android-ffmpeg
+
+					function build_one
+					{
+					./configure --target-os=linux --prefix=$PREFIX \
+					--enable-cross-compile \
+					--enable-runtime-cpudetect \
+					--disable-asm \
+					--arch=arm \
+					--cc=$PREBUILT/bin/arm-linux-androideabi-gcc \
+					--cross-prefix=$PREBUILT/bin/arm-linux-androideabi- \
+					--disable-stripping \
+					--nm=$PREBUILT/bin/arm-linux-androideabi-nm \
+					--sysroot=$PLATFORM \
+					--enable-nonfree \
+					--enable-version3 \
+					--disable-everything \
+					--enable-gpl \
+					--disable-doc \
+					--enable-avresample \
+					--enable-demuxer=rtsp \
+					--enable-muxer=rtsp \
+					--disable-ffplay \
+					--disable-ffserver \
+					--enable-ffmpeg \
+					--disable-ffprobe \
+					--enable-libx264 \
+					--enable-encoder=libx264 \
+					--enable-decoder=h264 \
+					--enable-protocol=rtp \
+					--enable-hwaccels \
+					--enable-zlib \
+					--disable-devices \
+					--disable-avdevice \
+					--extra-cflags="-I/home/android-ffmpeg/include -fPIC -DANDROID -D__thumb__ -mthumb -Wfatal-errors -Wno-deprecated -mfloat-abi=softfp -mfpu=vfpv3-d16 -marm -march=armv7-a" \
+					--extra-ldflags="-L/home/android-ffmpeg/lib"
+					make -j4 install
+
+					$PREBUILT/bin/arm-linux-androideabi-ar d libavcodec/libavcodec.a inverse.o
+					$PREBUILT/bin/arm-linux-androideabi-ld -rpath-link=$PLATFORM/usr/lib -L$PLATFORM/usr/lib -L$PREFIX/lib  -soname libffmpeg.so -shared -nostdlib  -z,noexecstack -Bsymbolic --whole-archive --no-undefined -o $PREFIX/libffmpeg.so libavcodec/libavcodec.a libavfilter/libavfilter.a libavresample/libavresample.a libavformat/libavformat.a libavutil/libavutil.a libswscale/libswscale.a -lc -lm -lz -ldl -llog -lx264 --warn-once --dynamic-linker=/system/bin/linker $PREBUILT/lib/gcc/arm-linux-androideabi/4.4.3/libgcc.a
+					}
+
+					build_one
+					</textarea>
+				</li>
+			</ol>
+				<br />
+				
+				Enjoy!
+				Any questions feel free to send an email to <strong>apostas.life@gmail.com</strong>		
+			</div>
+			<div id="tabs-2">The zip file have the android executable version of ffmpeg with libx264, 
+				the .so file to use in android, 
+				and all the include and lib files necessary to make use of it inside android-ndk file.
+				<br>
+				<h3>Please make a donation to buy me a beer!</h3>
+				<br>
+				<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+				<input type="hidden" name="cmd" value="_s-xclick">
+				<input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----MIIHLwYJKoZIhvcNAQcEoIIHIDCCBxwCAQExggEwMIIBLAIBADCBlDCBjjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtQYXlQYWwgSW5jLjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1UEAxQIbGl2ZV9hcGkxHDAaBgkqhkiG9w0BCQEWDXJlQHBheXBhbC5jb20CAQAwDQYJKoZIhvcNAQEBBQAEgYAPdCl4zgSONs1Cu1mPe91WDF1FdgZDkuxvHQiwOct4Q8bAjavGswtBjClcnO+eyFxHacjEBpw4dLwOwAjsqJ3BJonFkqSRByN5MTws3EgVhzX2WHJwD2hnW5H+5l/tvZ7oo0KO/wiF8u0ko3g8ywf01GTmmQiyC71FTT74aD7fajELMAkGBSsOAwIaBQAwgawGCSqGSIb3DQEHATAUBggqhkiG9w0DBwQI1SZwJ9VYviaAgYjlvN6dhrc5++P5EZKfWg+y1pkvkuK9VYJwq8wmK5svZ9wLyhozI5kzm3DMhyhdGu4qhf4lfBBNabq+ELX6QTx0R6jXYn01izo/3c1VJJntvC2jjtF0Uv3qO0SOLphWhjISV1bHfa/KGTXAWYfz/IVatpRzJac0tIRJyI9MzEIy/AanPR9kXZ/noIIDhzCCA4MwggLsoAMCAQICAQAwDQYJKoZIhvcNAQEFBQAwgY4xCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEUMBIGA1UEChMLUGF5UGFsIEluYy4xEzARBgNVBAsUCmxpdmVfY2VydHMxETAPBgNVBAMUCGxpdmVfYXBpMRwwGgYJKoZIhvcNAQkBFg1yZUBwYXlwYWwuY29tMB4XDTA0MDIxMzEwMTMxNVoXDTM1MDIxMzEwMTMxNVowgY4xCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEUMBIGA1UEChMLUGF5UGFsIEluYy4xEzARBgNVBAsUCmxpdmVfY2VydHMxETAPBgNVBAMUCGxpdmVfYXBpMRwwGgYJKoZIhvcNAQkBFg1yZUBwYXlwYWwuY29tMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDBR07d/ETMS1ycjtkpkvjXZe9k+6CieLuLsPumsJ7QC1odNz3sJiCbs2wC0nLE0uLGaEtXynIgRqIddYCHx88pb5HTXv4SZeuv0Rqq4+axW9PLAAATU8w04qqjaSXgbGLP3NmohqM6bV9kZZwZLR/klDaQGo1u9uDb9lr4Yn+rBQIDAQABo4HuMIHrMB0GA1UdDgQWBBSWn3y7xm8XvVk/UtcKG+wQ1mSUazCBuwYDVR0jBIGzMIGwgBSWn3y7xm8XvVk/UtcKG+wQ1mSUa6GBlKSBkTCBjjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtQYXlQYWwgSW5jLjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1UEAxQIbGl2ZV9hcGkxHDAaBgkqhkiG9w0BCQEWDXJlQHBheXBhbC5jb22CAQAwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQUFAAOBgQCBXzpWmoBa5e9fo6ujionW1hUhPkOBakTr3YCDjbYfvJEiv/2P+IobhOGJr85+XHhN0v4gUkEDI8r2/rNk1m0GA8HKddvTjyGw/XqXa+LSTlDYkqI8OwR8GEYj4efEtcRpRYBxV8KxAW93YDWzFGvruKnnLbDAF6VR5w/cCMn5hzGCAZowggGWAgEBMIGUMIGOMQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExFjAUBgNVBAcTDU1vdW50YWluIFZpZXcxFDASBgNVBAoTC1BheVBhbCBJbmMuMRMwEQYDVQQLFApsaXZlX2NlcnRzMREwDwYDVQQDFAhsaXZlX2FwaTEcMBoGCSqGSIb3DQEJARYNcmVAcGF5cGFsLmNvbQIBADAJBgUrDgMCGgUAoF0wGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTIxMDAyMjAxNzE5WjAjBgkqhkiG9w0BCQQxFgQUPJSPIIKLEcuxGlifoC1q/lNlx+owDQYJKoZIhvcNAQEBBQAEgYBpQy8FMVtVnirY3aWyCchc2PPOjOQzCF4RVuUBtbOOFgeTJYcbLJD8aBjKL97GwsK/lxnmReyIRTn7iHqPVadyqiC++4WDGqR0d25d39JAE3UQ7Ev5GdNd4uosL0FplmSlS8eEiNr2scrTD+7GnNmcaS9YagY9uRLnRV4PTUHi1A==-----END PKCS7-----
+				">
+				<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+				<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+				</form>
+				<br>
+				<button id="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Download zip file!</span></button>
+			<br>
+			<br>
+			<!-- hitwebcounter Code START -->
+			<a href="http://www.hitwebcounter.com/how-to/rogers-payasyougo.php" target="_blank">
+			<img src="http://hitwebcounter.com/counter/counter.php?page=4575163&style=0010&nbdigits=7&type=page&initCount=0" title="pay as you go mobile" Alt="pay as you go mobile"   border="0" >
+			</a>  
+			</div>
+		</div>
+	
+    <link type="text/css" href="css/ui-lightness/jquery-ui-1.8.23.custom.css" rel="Stylesheet" />	
+	<script type="text/javascript" src="js/jquery-1.8.0.min.js"></script>
+	<script type="text/javascript" src="js/jquery-ui-1.8.23.custom.min.js"></script>	
+    <script>
+		// Tabs
+		$('#tabs').tabs();
+		$("button").click(function(event){
+			event.preventDefault();
+			window.location.href = 'http://adf.ly/KQK3v';
+		});
+    </script>
+	
+  </body>
+</html>
